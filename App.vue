@@ -1,74 +1,136 @@
 <template>
-  <div style='padding: 20px; max-width: 600px; margin: auto;'>
+  <div style="padding: 20px; max-width: 800px; margin: auto;">
     <h1>💰 Expense Tracker</h1>
 
-    <div style='margin-top: 20px;'>
+    <!-- Form -->
+    <div style="margin-top: 20px;">
       <input v-model="entry.date" type="date" />
       <input v-model="entry.description" placeholder="Description" />
       <input v-model.number="entry.amount" type="number" placeholder="Amount" />
-      <button @click="addExpense">Add</button>
+      <button @click="isEditing ? updateExpense() : addExpense()">
+        {{ isEditing ? 'Update' : 'Add' }}
+      </button>
+      <button v-if="isEditing" @click="cancelEdit">Cancel</button>
     </div>
 
-    <hr />
+    <!-- Search -->
+    <div style="margin-top: 20px;">
+      <input v-model="search" placeholder="Search by description..." style="width: 100%; padding: 8px;" />
+    </div>
 
-    <h2>Expenses Summary</h2>
-    <p><strong>Total:</strong> ₹{{ total }}</p>
+    <!-- Table -->
+    <table border="1" cellpadding="10" cellspacing="0" style="margin-top: 20px; width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="expense in paginatedExpenses" :key="expense.id">
+          <td>{{ expense.date }}</td>
+          <td>{{ expense.description }}</td>
+          <td>₹{{ expense.amount }}</td>
+          <td>
+            <button @click="startEdit(expense)">Edit</button>
+            <button @click="deleteExpense(expense.id)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-    <div v-for="(items, date) in groupedExpenses" :key="date" style="margin-top: 15px;">
-      <h4>{{ date }}</h4>
-      <ul>
-        <li v-for="(e, i) in items" :key="i">
-          {{ e.description }} — ₹{{ e.amount }}
-        </li>
-      </ul>
+    <!-- Pagination -->
+    <div style="margin-top: 20px;">
+      <button @click="page--" :disabled="page === 1">Prev</button>
+      Page {{ page }} of {{ totalPages }}
+      <button @click="page++" :disabled="page === totalPages">Next</button>
     </div>
   </div>
 </template>
 
 <script>
-import { reactive, computed, onMounted } from 'vue';
+import { reactive, ref, computed, onMounted } from 'vue';
 
 export default {
   setup() {
-    const entry = reactive({ date: '', description: '', amount: null });
-    const expenses = reactive([]);
-    const API = 'https://dailyexpensetracker-459m.onrender.com/expenses'; // Replace with your Express API
+    const entry = reactive({ id: null, date: '', description: '', amount: null });
+    const expenses = ref([]);
+    const API = 'https://dailyexpensetracker-459m.onrender.com/expenses'; // Replace with your backend URL
+    const isEditing = ref(false);
+    const search = ref('');
+    const page = ref(1);
+    const pageSize = 5;
 
     const loadExpenses = async () => {
       const res = await fetch(API);
       const data = await res.json();
-      expenses.splice(0, expenses.length, ...data);
+      expenses.value = data;
     };
+
+    const filteredExpenses = computed(() => {
+      return expenses.value.filter(e => e.description.toLowerCase().includes(search.value.toLowerCase()));
+    });
+
+    const totalPages = computed(() => Math.ceil(filteredExpenses.value.length / pageSize));
+
+    const paginatedExpenses = computed(() => {
+      const start = (page.value - 1) * pageSize;
+      return filteredExpenses.value.slice(start, start + pageSize);
+    });
 
     const addExpense = async () => {
       if (!entry.date || !entry.description || !entry.amount) return;
-      const newExp = { ...entry };
       const res = await fetch(API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newExp)
+        body: JSON.stringify(entry)
       });
       if (res.ok) {
-        const saved = await res.json();
-        expenses.push(saved);
-        entry.description = '';
-        entry.amount = null;
+        await loadExpenses();
+        clearEntry();
       }
     };
 
-    const groupedExpenses = computed(() =>
-      expenses.reduce((acc, exp) => {
-        if (!acc[exp.date]) acc[exp.date] = [];
-        acc[exp.date].push(exp);
-        return acc;
-      }, {})
-    );
+    const deleteExpense = async (id) => {
+      await fetch(`${API}/${id}`, { method: 'DELETE' });
+      await loadExpenses();
+    };
 
-    const total = computed(() => expenses.reduce((sum, e) => sum + e.amount, 0));
+    const startEdit = (exp) => {
+      Object.assign(entry, exp);
+      isEditing.value = true;
+    };
+
+    const updateExpense = async () => {
+      await fetch(`${API}/${entry.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry)
+      });
+      await loadExpenses();
+      cancelEdit();
+    };
+
+    const cancelEdit = () => {
+      clearEntry();
+      isEditing.value = false;
+    };
+
+    const clearEntry = () => {
+      entry.id = null;
+      entry.date = '';
+      entry.description = '';
+      entry.amount = null;
+    };
 
     onMounted(loadExpenses);
 
-    return { entry, addExpense, groupedExpenses, total };
+    return {
+      entry, addExpense, deleteExpense, updateExpense, cancelEdit,
+      startEdit, isEditing, search, page, totalPages, paginatedExpenses
+    };
   }
 };
 </script>
@@ -79,6 +141,7 @@ input {
   padding: 6px;
 }
 button {
+  margin: 2px;
   padding: 6px 10px;
 }
 </style>
