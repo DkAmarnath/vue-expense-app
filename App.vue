@@ -17,8 +17,15 @@
       <button v-if="isEditing" class="cancel" @click="cancelEdit">Cancel</button>
     </section>
 
-    <!-- Search -->
-    <input v-model="search" class="search" placeholder="🔍 Search description..." />
+    <!-- Search & Sort -->
+    <div class="search-sort">
+      <input v-model="search" class="search" placeholder="🔍 Search description..." />
+      <select v-model="sortBy">
+        <option value="date">Sort by Date</option>
+        <option value="amount">Sort by Amount</option>
+        <option value="description">Sort by Description</option>
+      </select>
+    </div>
 
     <!-- Export Button -->
     <div class="export-button">
@@ -70,6 +77,7 @@ export default {
     const API = 'https://dailyexpensetracker-459m.onrender.com/expenses';
     const isEditing = ref(false);
     const search = ref('');
+    const sortBy = ref('date');
     const page = ref(1);
     const pageSize = 5;
 
@@ -80,7 +88,13 @@ export default {
     };
 
     const filteredExpenses = computed(() => {
-      return expenses.value.filter(e => e.description.toLowerCase().includes(search.value.toLowerCase()));
+      return expenses.value
+        .filter(e => e.description.toLowerCase().includes(search.value.toLowerCase()))
+        .sort((a, b) => {
+          if (sortBy.value === 'amount') return b.amount - a.amount;
+          if (sortBy.value === 'description') return a.description.localeCompare(b.description);
+          return new Date(b.date) - new Date(a.date);
+        });
     });
 
     const totalPages = computed(() => Math.ceil(filteredExpenses.value.length / pageSize));
@@ -150,7 +164,7 @@ export default {
 
     return {
       entry, addExpense, deleteExpense, updateExpense, cancelEdit,
-      startEdit, isEditing, search, page, totalPages, paginatedExpenses,
+      startEdit, isEditing, search, sortBy, page, totalPages, paginatedExpenses,
       exportToExcel, totalExpense
     };
   }
@@ -189,7 +203,7 @@ h1 {
   font-size: 1.2em;
   margin-top: 0;
 }
-input {
+input, select {
   padding: 10px;
   margin: 5px;
   border: 1px solid #ddd;
@@ -212,12 +226,16 @@ button.cancel {
 button:disabled {
   background: #ccc;
 }
-.search {
+.search-sort {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: center;
   margin-top: 10px;
-  padding: 10px;
-  width: 100%;
-  border-radius: 4px;
-  border: 1px solid #ddd;
+}
+.search {
+  flex: 1 1 60%;
+  margin-right: 10px;
 }
 .export-button {
   text-align: right;
@@ -245,7 +263,7 @@ th {
   text-align: center;
 }
 @media (max-width: 600px) {
-  input {
+  input, select {
     width: 100%;
   }
   table {
@@ -253,6 +271,10 @@ th {
   }
   th, td {
     padding: 8px;
+  }
+  .search-sort {
+    flex-direction: column;
+    gap: 10px;
   }
 }
 </style>
