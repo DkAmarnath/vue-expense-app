@@ -282,4 +282,19 @@ th {
     gap: 10px;
   }
 }
+  .navbar {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  background: #f0f0f0;
+  padding: 10px;
+}
+.navbar a {
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+}
+.navbar a.router-link-active {
+  color: #4caf50;
+}
 </style>
