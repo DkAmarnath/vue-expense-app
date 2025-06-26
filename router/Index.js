@@ -1,10 +1,9 @@
-// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import ExpenseTracker from '../App.vue'
-import MonthlyBudget from '../components/MonthlyBudget.vue'
+import App from '../App.vue'
+import MonthlyBudget from '../MonthlyBudget.vue'
 
 const routes = [
-  { path: '/', name: 'ExpenseTracker', component: ExpenseTracker },
+  { path: '/', name: 'ExpenseTracker', component: App },
   { path: '/monthly-budget', name: 'MonthlyBudget', component: MonthlyBudget }
 ]
 
