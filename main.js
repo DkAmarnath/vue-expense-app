@@ -1,7 +1,8 @@
+// main.js
 import { createApp } from 'vue'
 import App from './App.vue'
-import router from './router/index.js'  // Relative to root
+import router from './router/index.js'  // <-- MAKE SURE this path exists
 
-const app = createApp(App)
-app.use(router)
-app.mount('#app')
+createApp(App)
+  .use(router)
+  .mount('#app')
