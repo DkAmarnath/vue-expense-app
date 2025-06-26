@@ -72,7 +72,8 @@ import * as XLSX from 'xlsx';
 
 export default {
   setup() {
-    const entry = reactive({ id: null, date: '', description: '', amount: null });
+    const today = new Date().toISOString().split('T')[0];
+    const entry = reactive({ id: null, date: today, description: '', amount: null });
     const expenses = ref([]);
     const API = 'https://dailyexpensetracker-459m.onrender.com/expenses';
     const isEditing = ref(false);
