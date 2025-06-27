@@ -1,9 +1,6 @@
 <template>
   <div class="container">
-    <nav class="navbar">
-  <router-link to="/">Expense Tracker</router-link>
-  <router-link to="/monthly-budget">Monthly Budget</router-link>
-  </nav>
+   
     <header>
       <img src="/logo.png" alt="Expense Tracker Logo" class="logo" />
       <h1>Expense Tracker</h1>

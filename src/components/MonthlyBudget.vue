@@ -1,4 +1,5 @@
 <template>
+
   <div class="budget-container">
     <h1>Monthly Budget - {{ selectedMonth }}</h1>
 

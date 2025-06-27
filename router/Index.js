@@ -1,16 +1,12 @@
-// router/index.js
-import { createRouter, createWebHistory } from 'vue-router'
-import App from '../App.vue'
-import MonthlyBudget from '../Monthlybudget.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import ExpenseTracker from '../src/components/ExpenseTracker.vue';
+import MonthlyBudget from '../src/components/MonthlyBudget.vue';
 
 const routes = [
-  { path: '/', name: 'Home', component: App },
-  { path: '/monthly-budget', name: 'MonthlyBudget', component: MonthlyBudget }
-]
+  { path: '/', component: ExpenseTracker },
+  { path: '/budget', component: MonthlyBudget }]
 
-const router = createRouter({
+export default createRouter({
   history: createWebHistory(),
   routes
-})
-
-export default router
+});
